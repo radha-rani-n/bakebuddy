@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PanShape {
+  ROUND
+  SQUARE
+  RECTANGULAR
+  LOAF
+  MUFFIN_TIN
+}
+
+enum ImportSource {
+  URL
+  YOUTUBE
+  TIKTOK
+  INSTAGRAM
+  IMAGE
+  MANUAL
+}
+
+enum IngredientCategory {
+  DRY
+  WET
+  LEAVENING
+  FAT
+  SUGAR
+  EGG
+  SPICE
+  OTHER
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pans    Pan[]
+  recipes Recipe[]
+}
+
+model Pan {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  shape             PanShape
+  diameter          Float?
+  width             Float?
+  length            Float?
+  height            Float    @default(2)
+  cupCount          Int?
+  cupVolume         Float?
+  volumeCubicInches Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Recipe {
+  id                  String       @id @default(uuid())
+  userId              String
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  sourceUrl           String?
+  imageUrl            String?
+  importSource        ImportSource
+  originalYield       Int?
+  prepTime            Int?
+  cookTime            Int?
+  bakeTemp            Int?
+  bakeTempUnit        String       @default("F")
+  originalPanShape    PanShape?
+  originalPanWidth    Float?
+  originalPanLength   Float?
+  originalPanDiameter Float?
+  originalPanHeight   Float?
+  originalPanVolume   Float?
+
+  ingredients   Ingredient[]
+  steps         Step[]
+  scaledRecipes ScaledRecipe[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Ingredient {
+  id        String             @id @default(uuid())
+  recipeId  String
+  recipe    Recipe             @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  quantity  Float?
+  unit      String?
+  name      String
+  category  IngredientCategory @default(OTHER)
+  notes     String?
+
+  @@index([recipeId])
+}
+
+model Step {
+  id             String @id @default(uuid())
+  recipeId       String
+  recipe         Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  sortOrder      Int
+  text           String
+  ingredientRefs Json?
+
+  @@index([recipeId])
+}
+
+model ScaledRecipe {
+  id                String   @id @default(uuid())
+  recipeId          String
+  recipe            Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  scaleFactor       Float
+  scaleMethod       String
+  targetYield       Int?
+  targetPanName     String?
+  targetPanVolume   Float?
+  adjustedBakeTemp  Int?
+  adjustedBakeTime  Int?
+  scaledIngredients Json
+  scaledSteps       Json
+  createdAt         DateTime @default(now())
+
+  @@index([recipeId])
+}
