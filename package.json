@@ -1,0 +1,16 @@
+{
+  "name": "bakebuddy",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "cd client && npm install && cd ../server && npm install",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build": "npm run build:client && npm run build:server",
+    "start": "cd server && NODE_ENV=production node dist/index.js",
+    "prisma:migrate": "cd server && npx prisma migrate deploy",
+    "prisma:generate": "cd server && npx prisma generate"
+  }
+}

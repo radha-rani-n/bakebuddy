@@ -73,14 +73,19 @@ export async function scrapeUrl(url: string): Promise<ParsedRecipe> {
   let steps: string[] = [];
   if (recipeData.recipeInstructions) {
     if (Array.isArray(recipeData.recipeInstructions)) {
-      steps = recipeData.recipeInstructions.map((step: any) => {
-        if (typeof step === 'string') return step;
-        if (step.text) return step.text;
-        if (step['@type'] === 'HowToSection' && step.itemListElement) {
-          return step.itemListElement.map((item: any) => item.text || item).join(' ');
+      for (const step of recipeData.recipeInstructions) {
+        if (typeof step === 'string') {
+          steps.push(step);
+        } else if (step.text) {
+          steps.push(step.text);
+        } else if (step['@type'] === 'HowToSection' && step.itemListElement) {
+          for (const item of step.itemListElement) {
+            const text = typeof item === 'string' ? item : item.text;
+            if (text) steps.push(text);
+          }
         }
-        return '';
-      }).filter(Boolean);
+      }
+      steps = steps.filter(Boolean);
     } else if (typeof recipeData.recipeInstructions === 'string') {
       steps = recipeData.recipeInstructions.split(/\n+/).filter(Boolean);
     }
@@ -94,6 +99,12 @@ export async function scrapeUrl(url: string): Promise<ParsedRecipe> {
     bakeTemp = parseInt(tempMatch[1]);
   }
 
+  // Also extract visible page text for pan detection (JSON-LD often omits pan info)
+  const bodyText = $('article, .recipe, .entry-content, .post-content, body')
+    .first()
+    .text()
+    .replace(/\s+/g, ' ');
+
   return normalizeRecipe({
     title: recipeData.name,
     description: recipeData.description,
@@ -104,5 +115,6 @@ export async function scrapeUrl(url: string): Promise<ParsedRecipe> {
     bakeTemp,
     ingredients: recipeData.recipeIngredient || [],
     steps,
+    bodyText,
   });
 }

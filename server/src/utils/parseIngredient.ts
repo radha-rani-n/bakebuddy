@@ -53,8 +53,8 @@ const CATEGORY_KEYWORDS: Record<string, IngredientCategory> = {
   buttermilk: 'WET', yogurt: 'WET', 'sour cream': 'WET',
 };
 
-// Regex: optional quantity (number, fraction, or mixed), optional unit, then the rest is the name
-const QUANTITY_PATTERN = /^([\d]+\s*[\d]*\/?[\d]*|[\d]*\.[\d]+)\s*/;
+// Regex: optional quantity (number, fraction, mixed, or "X and Y/Z"), optional unit, then the rest is the name
+const QUANTITY_PATTERN = /^(\d+\s+and\s+\d+\/\d+|\d+\s+\d+\/\d+|\d+\/\d+|\d*\.\d+|\d+)\s*/i;
 const UNICODE_FRACTIONS: Record<string, number> = {
   '\u00BC': 0.25, '\u00BD': 0.5, '\u00BE': 0.75,
   '\u2153': 0.333, '\u2154': 0.667,

@@ -99,6 +99,27 @@ export async function signOut(req: Request, res: Response) {
   res.json({ message: 'Signed out successfully' });
 }
 
+export async function refreshSession(req: Request, res: Response) {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    res.status(400).json({ error: 'Refresh token required' });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin.auth.refreshSession({ refresh_token: refreshToken });
+  if (error || !data.session || !data.user) {
+    res.status(401).json({ error: 'Failed to refresh session' });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: data.user.id } });
+
+  res.json({
+    user: { id: data.user.id, email: user?.email || data.user.email, name: user?.name },
+    session: data.session,
+  });
+}
+
 export async function getMe(req: Request, res: Response) {
   const user = await prisma.user.findUnique({ where: { id: req.userId } });
 
@@ -108,4 +129,36 @@ export async function getMe(req: Request, res: Response) {
   }
 
   res.json({ user: { id: user.id, email: user.email, name: user.name } });
+}
+
+export async function updateMe(req: Request, res: Response) {
+  const { name } = req.body;
+  const user = await prisma.user.update({
+    where: { id: req.userId },
+    data: { name: name || null },
+  });
+  res.json({ user: { id: user.id, email: user.email, name: user.name } });
+}
+
+export async function changePassword(req: Request, res: Response) {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return;
+  }
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(req.userId!, {
+    password: newPassword,
+  });
+  if (error) {
+    res.status(400).json({ error: error.message });
+    return;
+  }
+  res.json({ message: 'Password changed' });
+}
+
+export async function deleteMe(req: Request, res: Response) {
+  // Delete all user data via cascade, then Supabase auth user
+  await prisma.user.delete({ where: { id: req.userId } });
+  await supabaseAdmin.auth.admin.deleteUser(req.userId!);
+  res.json({ message: 'Account deleted' });
 }

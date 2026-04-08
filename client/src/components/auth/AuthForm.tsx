@@ -1,8 +1,10 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import BakeBuddyLogo from '../ui/BakeBuddyLogo';
+import BakeBuddyText from '../ui/BakeBuddyText';
 import toast from 'react-hot-toast';
 
 interface AuthFormProps {
@@ -40,14 +42,17 @@ export default function AuthForm({ mode }: AuthFormProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-amber-50 px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-amber-800">BakeBuddy</h1>
+        <div className="text-center mb-8 animate-fade-in-up">
+          <Link to="/" className="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <BakeBuddyLogo size={36} />
+            <BakeBuddyText size="lg" />
+          </Link>
           <p className="text-gray-600 mt-2">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 animate-fade-in-up delay-200">
           {mode === 'signup' && (
             <Input
               label="Name"

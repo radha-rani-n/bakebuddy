@@ -55,32 +55,38 @@ export default function MyPans() {
     }
   };
 
-  if (loading) return <Spinner size="lg" />;
+  if (loading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Pans</h1>
-          <p className="text-gray-600 mt-1">Manage your pan collection for recipe scaling</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">🍳 My Pans</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            {pans.length} pan{pans.length !== 1 ? 's' : ''} in your collection
+          </p>
         </div>
         <Button onClick={() => { setEditingPan(null); setShowModal(true); }}>
-          Add Pan
+          + Add Pan
         </Button>
       </div>
 
       {pans.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-gray-500 mb-4">No pans yet. Add your first pan to start scaling recipes!</p>
-          <Button onClick={() => setShowModal(true)}>Add Your First Pan</Button>
+        <Card className="p-10 text-center animate-scale-in">
+          <div className="text-5xl mb-4">🍳</div>
+          <h3 className="font-semibold text-gray-900 mb-2">No pans yet</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            Add your baking pans to enable smart pan-based recipe scaling!
+          </p>
+          <Button size="lg" onClick={() => setShowModal(true)}>Add Your First Pan</Button>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pans.map((pan) => (
-            <Card key={pan.id} className="p-4">
+          {pans.map((pan, i) => (
+            <Card key={pan.id} className={`p-4 hover:-translate-y-1 group animate-fade-in-up delay-${Math.min((i + 1) * 100, 700)}`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{shapeIcons[pan.shape]}</span>
+                  <span className="text-2xl group-hover:animate-float">{shapeIcons[pan.shape]}</span>
                   <div>
                     <h3 className="font-semibold text-gray-900">{pan.name}</h3>
                     <p className="text-sm text-gray-500">{shapeLabels[pan.shape]}</p>
@@ -93,7 +99,7 @@ export default function MyPans() {
                   {pan.volumeCubicInches.toFixed(1)} cubic inches
                 </p>
               </div>
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost"
                   size="sm"

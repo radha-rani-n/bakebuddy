@@ -29,20 +29,24 @@ export default function RecipeLibrary() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Recipe Library</h1>
-          <p className="text-gray-600 mt-1">{recipes.length} recipe{recipes.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            📚 Recipe Library
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} in your collection
+          </p>
         </div>
         <Link to="/import">
-          <Button>Import Recipe</Button>
+          <Button>+ Import Recipe</Button>
         </Link>
       </div>
 
-      <form onSubmit={handleSearch} className="mb-6">
+      <form onSubmit={handleSearch} className="mb-6 animate-fade-in-up delay-100">
         <div className="flex gap-2">
           <Input
-            placeholder="Search recipes..."
+            placeholder="Search your recipes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -51,27 +55,41 @@ export default function RecipeLibrary() {
       </form>
 
       {loading ? (
-        <Spinner />
+        <div className="flex justify-center py-12">
+          <Spinner size="lg" />
+        </div>
       ) : recipes.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-gray-500 mb-4">
-            {query ? `No recipes found for "${query}"` : 'No recipes yet. Import your first recipe!'}
+        <Card className="p-10 text-center animate-scale-in">
+          <div className="text-5xl mb-4">🧑‍🍳</div>
+          <h3 className="font-semibold text-gray-900 mb-2">
+            {query ? `No recipes found for "${query}"` : 'Your recipe collection is empty'}
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">
+            {query ? 'Try a different search term' : 'Import your first recipe and start building your baking library!'}
           </p>
-          <Link to="/import">
-            <Button>Import Recipe</Button>
-          </Link>
+          {!query && (
+            <Link to="/import">
+              <Button size="lg">Import Your First Recipe</Button>
+            </Link>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {recipes.map((recipe) => (
-            <Card key={recipe.id} className="overflow-hidden">
+          {recipes.map((recipe, i) => (
+            <Card key={recipe.id} className={`overflow-hidden group hover:-translate-y-1 animate-fade-in-up delay-${Math.min((i + 1) * 100, 700)}`}>
               <Link to={`/recipes/${recipe.id}`}>
-                {recipe.imageUrl && (
-                  <img
-                    src={recipe.imageUrl}
-                    alt={recipe.title}
-                    className="w-full h-44 object-cover"
-                  />
+                {recipe.imageUrl ? (
+                  <div className="overflow-hidden">
+                    <img
+                      src={recipe.imageUrl}
+                      alt={recipe.title}
+                      className="w-full h-36 sm:h-44 object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-36 sm:h-44 bg-linear-to-br from-amber-100 via-amber-50 to-orange-100 flex items-center justify-center">
+                    <span className="text-4xl opacity-50">🧁</span>
+                  </div>
                 )}
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-900 truncate">{recipe.title}</h3>
@@ -93,7 +111,7 @@ export default function RecipeLibrary() {
               <div className="px-4 pb-3">
                 <button
                   onClick={() => handleDelete(recipe.id, recipe.title)}
-                  className="text-xs text-red-500 hover:text-red-700"
+                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
                 >
                   Delete
                 </button>

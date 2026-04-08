@@ -1,17 +1,20 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../config/prisma';
-import { scaleRecipe } from '../services/scaling/scalingEngine';
+import { scaleRecipe, getScalableIngredients } from '../services/scaling/scalingEngine';
 
 const scaleSchema = z.object({
-  method: z.enum(['servings', 'pan']),
+  method: z.enum(['servings', 'pan', 'ingredient']),
   targetServings: z.number().int().positive().optional(),
   targetPanId: z.string().uuid().optional(),
+  ingredientName: z.string().optional(),
+  haveQuantity: z.number().positive().optional(),
+  haveUnit: z.string().optional(),
 });
 
 export async function scale(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const body = scaleSchema.parse(req.body);
 
     const recipe = await prisma.recipe.findFirst({
@@ -38,7 +41,16 @@ export async function scale(req: Request, res: Response) {
       }
     }
 
-    const scaled = scaleRecipe(recipe, body.method, body.targetServings, targetPan);
+    if (body.method === 'pan' && !recipe.originalPanVolume) {
+      res.status(400).json({ error: 'This recipe has no original pan size. Edit the recipe to add pan dimensions before scaling by pan.' });
+      return;
+    }
+
+    const ingredientInput = body.method === 'ingredient' && body.ingredientName
+      ? { ingredientName: body.ingredientName, haveQuantity: body.haveQuantity!, haveUnit: body.haveUnit || 'g' }
+      : null;
+
+    const scaled = scaleRecipe(recipe, body.method, body.targetServings, targetPan, ingredientInput);
 
     const savedScaled = await prisma.scaledRecipe.create({
       data: {
@@ -50,8 +62,8 @@ export async function scale(req: Request, res: Response) {
         targetPanVolume: targetPan?.volumeCubicInches || null,
         adjustedBakeTemp: scaled.adjustedBakeTemp,
         adjustedBakeTime: scaled.adjustedBakeTime,
-        scaledIngredients: scaled.scaledIngredients,
-        scaledSteps: scaled.scaledSteps,
+        scaledIngredients: scaled.scaledIngredients as any,
+        scaledSteps: scaled.scaledSteps as any,
       },
     });
 
@@ -65,8 +77,32 @@ export async function scale(req: Request, res: Response) {
   }
 }
 
+export async function scalableIngredients(req: Request, res: Response) {
+  const id = req.params.id as string;
+
+  const recipe = await prisma.recipe.findFirst({
+    where: { id, userId: req.userId! },
+    include: { ingredients: { orderBy: { sortOrder: 'asc' } } },
+  });
+
+  if (!recipe) {
+    res.status(404).json({ error: 'Recipe not found' });
+    return;
+  }
+
+  const scalable = getScalableIngredients(recipe.ingredients);
+  res.json({
+    ingredients: scalable.map(ing => ({
+      name: ing.name,
+      quantity: ing.quantity,
+      unit: ing.unit,
+      category: ing.category,
+    })),
+  });
+}
+
 export async function listScaled(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const recipe = await prisma.recipe.findFirst({ where: { id, userId: req.userId! } });
   if (!recipe) {
@@ -83,7 +119,8 @@ export async function listScaled(req: Request, res: Response) {
 }
 
 export async function deleteScaled(req: Request, res: Response) {
-  const { id, scaledId } = req.params;
+  const id = req.params.id as string;
+  const scaledId = req.params.scaledId as string;
 
   const recipe = await prisma.recipe.findFirst({ where: { id, userId: req.userId! } });
   if (!recipe) {

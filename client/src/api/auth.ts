@@ -19,3 +19,8 @@ export async function getMe(): Promise<{ user: User }> {
   const { data } = await apiClient.get('/auth/me');
   return data;
 }
+
+export async function refreshSession(refreshToken: string): Promise<AuthResponse> {
+  const { data } = await apiClient.post('/auth/refresh', { refreshToken });
+  return data;
+}

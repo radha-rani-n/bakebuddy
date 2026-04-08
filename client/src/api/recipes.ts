@@ -21,6 +21,17 @@ export async function updateRecipe(id: string, recipe: RecipeFormData): Promise<
   return data;
 }
 
+export async function updateRecipePan(id: string, panData: {
+  originalPanShape: string | null;
+  originalPanWidth?: number | null;
+  originalPanLength?: number | null;
+  originalPanDiameter?: number | null;
+  originalPanHeight?: number | null;
+}): Promise<{ recipe: Recipe }> {
+  const { data } = await apiClient.patch(`/recipes/${id}/pan`, panData);
+  return data;
+}
+
 export async function deleteRecipe(id: string): Promise<void> {
   await apiClient.delete(`/recipes/${id}`);
 }

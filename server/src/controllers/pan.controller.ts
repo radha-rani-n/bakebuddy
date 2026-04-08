@@ -47,7 +47,7 @@ export async function createPan(req: Request, res: Response) {
 
 export async function updatePan(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const body = panSchema.parse(req.body);
     const volume = calculatePanVolume(body);
 
@@ -73,7 +73,7 @@ export async function updatePan(req: Request, res: Response) {
 }
 
 export async function deletePan(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const existing = await prisma.pan.findFirst({ where: { id, userId: req.userId! } });
 
   if (!existing) {

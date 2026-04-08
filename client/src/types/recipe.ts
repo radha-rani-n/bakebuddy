@@ -65,6 +65,7 @@ export interface ScaledIngredient {
   name: string;
   originalQty: number | null;
   scaledQty: number | null;
+  scaledGrams: number | null;
   unit: string | null;
   category: string;
   notes: string | null;

@@ -21,7 +21,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       authApi.getMe()
         .then(({ user }) => setUser(user))
-        .catch(() => {
+        .catch(async () => {
+          // Token might be expired — try refreshing
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (refreshToken) {
+            try {
+              const { user, session } = await authApi.refreshSession(refreshToken);
+              localStorage.setItem('access_token', session.access_token);
+              localStorage.setItem('refresh_token', session.refresh_token);
+              setUser(user);
+              return;
+            } catch {
+              // Refresh also failed
+            }
+          }
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
         })

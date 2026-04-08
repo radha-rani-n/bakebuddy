@@ -35,8 +35,16 @@ export function decimalToFraction(value: number): string {
   return `${whole} ${closestFraction}`;
 }
 
-export function fractionToDecimal(fraction: string): number {
+export function fractionToDecimal(fraction: string | number): number {
+  if (typeof fraction === 'number') return fraction;
+  if (typeof fraction !== 'string') return 0;
   const trimmed = fraction.trim();
+
+  // Handle "X and Y/Z" like "1 and 2/3"
+  const andMatch = trimmed.match(/^(\d+)\s+and\s+(\d+)\/(\d+)$/i);
+  if (andMatch) {
+    return parseInt(andMatch[1]) + parseInt(andMatch[2]) / parseInt(andMatch[3]);
+  }
 
   // Handle mixed numbers like "2 1/2"
   const mixedMatch = trimmed.match(/^(\d+)\s+(\d+)\/(\d+)$/);

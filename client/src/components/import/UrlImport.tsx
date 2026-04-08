@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RecipeFormData } from '../../types/recipe';
+import type { RecipeFormData } from '../../types/recipe';
 import apiClient from '../../api/client';
 import Button from '../ui/Button';
 import Input from '../ui/Input';

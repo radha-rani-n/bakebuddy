@@ -11,6 +11,7 @@ import MyPans from './pages/MyPans';
 import ImportRecipe from './pages/ImportRecipe';
 import RecipeLibrary from './pages/RecipeLibrary';
 import RecipeDetail from './pages/RecipeDetail';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -64,6 +65,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <PageShell><RecipeDetail /></PageShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <PageShell><Settings /></PageShell>
               </ProtectedRoute>
             }
           />

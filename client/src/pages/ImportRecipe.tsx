@@ -10,11 +10,11 @@ import ImageImport from '../components/import/ImageImport';
 import toast from 'react-hot-toast';
 
 const tabs = [
-  { id: 'manual', label: 'Manual' },
-  { id: 'url', label: 'URL' },
-  { id: 'youtube', label: 'YouTube' },
-  { id: 'social', label: 'Social' },
-  { id: 'image', label: 'Image' },
+  { id: 'manual', label: 'Manual', icon: '✏️' },
+  { id: 'url', label: 'URL', icon: '🔗' },
+  { id: 'youtube', label: 'YouTube', icon: '🎬' },
+  { id: 'social', label: 'Social', icon: '📱' },
+  { id: 'image', label: 'Image', icon: '📷' },
 ];
 
 export default function ImportRecipe() {
@@ -33,34 +33,37 @@ export default function ImportRecipe() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Import Recipe</h1>
-        <p className="text-gray-600 mt-1">Add a recipe to your library</p>
+      <div className="mb-6 animate-fade-in-up">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">📥 Import Recipe</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Add a recipe to your library from any source</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg overflow-x-auto">
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto animate-fade-in-up delay-100">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-lg whitespace-nowrap transition-all ${
               activeTab === tab.id
-                ? 'bg-white text-amber-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-amber-700 shadow-sm scale-[1.02]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
+            <span className="text-base">{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'manual' && <ManualEntry onSave={handleSave} />}
-      {activeTab === 'url' && <UrlImport onSave={handleSave} />}
-      {activeTab === 'youtube' && <YoutubeImport onSave={handleSave} />}
-      {activeTab === 'social' && <SocialImport onSave={handleSave} />}
-      {activeTab === 'image' && <ImageImport onSave={handleSave} />}
+      <div className="animate-fade-in-up delay-200">
+        {activeTab === 'manual' && <ManualEntry onSave={handleSave} />}
+        {activeTab === 'url' && <UrlImport onSave={handleSave} />}
+        {activeTab === 'youtube' && <YoutubeImport onSave={handleSave} />}
+        {activeTab === 'social' && <SocialImport onSave={handleSave} />}
+        {activeTab === 'image' && <ImageImport onSave={handleSave} />}
+      </div>
     </div>
   );
 }

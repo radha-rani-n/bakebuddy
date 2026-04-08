@@ -1,7 +1,7 @@
-import { useState, FormEvent } from 'react';
-import { RecipeFormData, Ingredient, Step, IngredientCategory } from '../../types/recipe';
-import { PanShape } from '../../types/pan';
-import { PAN_SHAPES, INGREDIENT_CATEGORIES } from '../../lib/constants';
+import { useState, type FormEvent } from 'react';
+import type { RecipeFormData, Ingredient, Step, IngredientCategory } from '../../types/recipe';
+import type { PanShape } from '../../types/pan';
+import { INGREDIENT_CATEGORIES } from '../../lib/constants';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
@@ -32,11 +32,6 @@ export default function ManualEntry({ onSave, initialData }: ManualEntryProps) {
   const [prepTime, setPrepTime] = useState(initialData?.prepTime?.toString() || '');
   const [cookTime, setCookTime] = useState(initialData?.cookTime?.toString() || '');
   const [bakeTemp, setBakeTemp] = useState(initialData?.bakeTemp?.toString() || '');
-  const [panShape, setPanShape] = useState<PanShape | ''>(initialData?.originalPanShape || '');
-  const [panDiameter, setPanDiameter] = useState(initialData?.originalPanDiameter?.toString() || '');
-  const [panWidth, setPanWidth] = useState(initialData?.originalPanWidth?.toString() || '');
-  const [panLength, setPanLength] = useState(initialData?.originalPanLength?.toString() || '');
-  const [panHeight, setPanHeight] = useState(initialData?.originalPanHeight?.toString() || '2');
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     initialData?.ingredients || [emptyIngredient()]
@@ -64,21 +59,18 @@ export default function ManualEntry({ onSave, initialData }: ManualEntryProps) {
       title,
       description: description || undefined,
       imageUrl: imageUrl || undefined,
+      sourceUrl: initialData?.sourceUrl,
       importSource: initialData?.importSource || 'MANUAL',
       originalYield: originalYield ? parseInt(originalYield) : undefined,
       prepTime: prepTime ? parseInt(prepTime) : undefined,
       cookTime: cookTime ? parseInt(cookTime) : undefined,
       bakeTemp: bakeTemp ? parseInt(bakeTemp) : undefined,
-      ...(panShape && {
-        originalPanShape: panShape as PanShape,
-        ...(panShape === 'ROUND' && { originalPanDiameter: parseFloat(panDiameter) }),
-        ...((panShape === 'RECTANGULAR' || panShape === 'LOAF' || panShape === 'SQUARE') && {
-          originalPanWidth: parseFloat(panWidth),
-        }),
-        ...((panShape === 'RECTANGULAR' || panShape === 'LOAF') && {
-          originalPanLength: parseFloat(panLength),
-        }),
-        originalPanHeight: parseFloat(panHeight) || 2,
+      ...(initialData?.originalPanShape && {
+        originalPanShape: initialData.originalPanShape as PanShape,
+        originalPanDiameter: initialData.originalPanDiameter,
+        originalPanWidth: initialData.originalPanWidth,
+        originalPanLength: initialData.originalPanLength,
+        originalPanHeight: initialData.originalPanHeight || 2,
       }),
       ingredients: ingredients
         .filter((ing) => ing.name.trim())
@@ -119,40 +111,19 @@ export default function ManualEntry({ onSave, initialData }: ManualEntryProps) {
         </div>
       </Card>
 
-      {/* Original Pan (optional) */}
-      <Card className="p-4 space-y-4">
-        <h3 className="font-semibold text-gray-900">Original Pan Size (optional)</h3>
-        <p className="text-xs text-gray-500">Needed if you want to scale by pan size</p>
-        <select
-          value={panShape}
-          onChange={(e) => setPanShape(e.target.value as PanShape | '')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="">None</option>
-          {PAN_SHAPES.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
-        {panShape === 'ROUND' && (
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Diameter (in)" type="number" step="0.5" value={panDiameter} onChange={(e) => setPanDiameter(e.target.value)} />
-            <Input label="Height (in)" type="number" step="0.5" value={panHeight} onChange={(e) => setPanHeight(e.target.value)} />
-          </div>
-        )}
-        {(panShape === 'SQUARE') && (
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Width (in)" type="number" step="0.5" value={panWidth} onChange={(e) => setPanWidth(e.target.value)} />
-            <Input label="Height (in)" type="number" step="0.5" value={panHeight} onChange={(e) => setPanHeight(e.target.value)} />
-          </div>
-        )}
-        {(panShape === 'RECTANGULAR' || panShape === 'LOAF') && (
-          <div className="grid grid-cols-3 gap-3">
-            <Input label="Width (in)" type="number" step="0.5" value={panWidth} onChange={(e) => setPanWidth(e.target.value)} />
-            <Input label="Length (in)" type="number" step="0.5" value={panLength} onChange={(e) => setPanLength(e.target.value)} />
-            <Input label="Height (in)" type="number" step="0.5" value={panHeight} onChange={(e) => setPanHeight(e.target.value)} />
-          </div>
-        )}
-      </Card>
+      {/* Detected Pan Size (read-only) */}
+      {initialData?.originalPanShape && (
+        <Card className="p-4">
+          <h3 className="font-semibold text-gray-900 mb-1">Detected Pan Size</h3>
+          <p className="text-sm text-gray-600">
+            {initialData.originalPanShape === 'ROUND' && `${initialData.originalPanDiameter}" Round × ${initialData.originalPanHeight || 2}" deep`}
+            {initialData.originalPanShape === 'SQUARE' && `${initialData.originalPanWidth}" × ${initialData.originalPanWidth}" Square × ${initialData.originalPanHeight || 2}" deep`}
+            {(initialData.originalPanShape === 'RECTANGULAR' || initialData.originalPanShape === 'LOAF') && `${initialData.originalPanWidth}" × ${initialData.originalPanLength}" ${initialData.originalPanShape === 'LOAF' ? 'Loaf' : 'Rectangular'} × ${initialData.originalPanHeight || 2}" deep`}
+            {initialData.originalPanShape === 'MUFFIN_TIN' && 'Muffin Tin'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">You can edit this later on the recipe page.</p>
+        </Card>
+      )}
 
       {/* Ingredients */}
       <Card className="p-4 space-y-3">
@@ -161,48 +132,57 @@ export default function ManualEntry({ onSave, initialData }: ManualEntryProps) {
           <Button type="button" variant="ghost" size="sm" onClick={addIngredient}>+ Add</Button>
         </div>
         {ingredients.map((ing, idx) => (
-          <div key={idx} className="flex gap-2 items-start">
-            <div className="w-16">
-              <Input
-                placeholder="Qty"
-                type="number"
-                step="0.25"
-                value={ing.quantity?.toString() || ''}
-                onChange={(e) => updateIngredient(idx, 'quantity', e.target.value ? parseFloat(e.target.value) : null)}
-              />
+          <div key={idx} className="border border-gray-100 rounded-lg p-2 sm:p-0 sm:border-0">
+            <div className="grid grid-cols-[1fr_1fr_auto] sm:flex gap-2 items-start">
+              <div className="sm:w-16">
+                <Input
+                  placeholder="Qty"
+                  type="number"
+                  step="0.25"
+                  value={ing.quantity?.toString() || ''}
+                  onChange={(e) => updateIngredient(idx, 'quantity', e.target.value ? parseFloat(e.target.value) : null)}
+                />
+              </div>
+              <div className="sm:w-16">
+                <Input
+                  placeholder="Unit"
+                  value={ing.unit || ''}
+                  onChange={(e) => updateIngredient(idx, 'unit', e.target.value || null)}
+                />
+              </div>
+              {ingredients.length > 1 && (
+                <button type="button" onClick={() => removeIngredient(idx)} className="sm:hidden text-red-400 hover:text-red-600 mt-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              <div className="col-span-2 sm:flex-1">
+                <Input
+                  placeholder="Ingredient name"
+                  value={ing.name}
+                  onChange={(e) => updateIngredient(idx, 'name', e.target.value)}
+                />
+              </div>
+              <div className="col-span-1 sm:w-24">
+                <select
+                  value={ing.category}
+                  onChange={(e) => updateIngredient(idx, 'category', e.target.value as IngredientCategory)}
+                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  {INGREDIENT_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              {ingredients.length > 1 && (
+                <button type="button" onClick={() => removeIngredient(idx)} className="hidden sm:block text-red-400 hover:text-red-600 mt-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
-            <div className="w-16">
-              <Input
-                placeholder="Unit"
-                value={ing.unit || ''}
-                onChange={(e) => updateIngredient(idx, 'unit', e.target.value || null)}
-              />
-            </div>
-            <div className="flex-1">
-              <Input
-                placeholder="Ingredient name"
-                value={ing.name}
-                onChange={(e) => updateIngredient(idx, 'name', e.target.value)}
-              />
-            </div>
-            <div className="w-24">
-              <select
-                value={ing.category}
-                onChange={(e) => updateIngredient(idx, 'category', e.target.value as IngredientCategory)}
-                className="w-full px-2 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                {INGREDIENT_CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
-            </div>
-            {ingredients.length > 1 && (
-              <button type="button" onClick={() => removeIngredient(idx)} className="text-red-400 hover:text-red-600 mt-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
           </div>
         ))}
       </Card>
